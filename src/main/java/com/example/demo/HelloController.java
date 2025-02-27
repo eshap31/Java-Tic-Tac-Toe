@@ -93,59 +93,22 @@ public class HelloController {
         Player player = new Player(name, size);
 
         // Add the player to the manager through the lobby controller
+        // Note: We're not creating game views here anymore - GameSetupController will handle that
         Game game = lobbyController.registerPlayer(player);
 
-        // If a game was created (player was matched), set up the game view
         if (game != null) {
-            // Create a game controller
-            GameController gameController = new GameController(game);
-
-            // Create a game view
-            String title = player.getName() + "'s Game (" + player.getSymbol() + ")";
-            GameView gameView = new GameView(title, gameController, size);
-
-            // Start the game and show the view
-            gameController.startGame();
-            gameView.show();
-
-            // Close the registration window
+            // A match was found - close the registration window
+            // GameSetupController will handle creating the game views
+            System.out.println("Player matched: " + name + " - closing registration window");
             Stage stage = (Stage) nameEntry.getScene().getWindow();
             stage.close();
         } else {
             // No match yet, show waiting message
             Stage stage = (Stage) nameEntry.getScene().getWindow();
             stage.setTitle("Waiting for opponent...");
+            System.out.println("Player waiting: " + name);
 
-            // Add an observer to be notified when a game is created
-            manager.addObserver(new Manager.ManagerObserver() {
-                @Override
-                public void onPlayerWaiting(Player waitingPlayer) {
-                    // Not needed
-                }
-
-                @Override
-                public void onGameCreated(Game createdGame) {
-                    if (createdGame.getPlayer1() == player || createdGame.getPlayer2() == player) {
-                        // This is our game
-                        GameController gameController = new GameController(createdGame);
-                        String title = player.getName() + "'s Game (" + player.getSymbol() + ")";
-                        GameView gameView = new GameView(title, gameController, size);
-                        gameController.startGame();
-                        gameView.show();
-
-                        // Remove this observer
-                        manager.removeObserver(this);
-
-                        // Close the registration window
-                        javafx.application.Platform.runLater(() -> stage.close());
-                    }
-                }
-
-                @Override
-                public void onGameEnded(Game endedGame) {
-                    // Not needed
-                }
-            });
+            // The window will be closed by the GameSetupController when a match is found
         }
     }
 

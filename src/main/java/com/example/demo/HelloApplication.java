@@ -13,47 +13,36 @@ import java.net.URL;
  * Main application class for the Tic Tac Toe game.
  * This class loads the initial FXML and starts the application.
  */
+/**
+ * Main application class for the Tic Tac Toe game.
+ * This class loads the initial FXML and starts the application.
+ */
 public class HelloApplication extends Application {
     private Manager gameManager;
+    private GameSetupController gameSetupController;
 
     @Override
     public void start(Stage stage) throws IOException {
         // Create the game manager that will be used throughout the application
         gameManager = new Manager();
 
-        // Print the working directory to debug
-        System.out.println("Working Directory: " + System.getProperty("user.dir"));
+        // Create the game setup controller that will create game UIs
+        gameSetupController = new GameSetupController(gameManager);
 
-        // Try multiple possible paths to find the FXML file
-        String[] possiblePaths = {
-                "hello-view.fxml",
-                "/hello-view.fxml",
-                "/com/example/demo/hello-view.fxml",
-                "com/example/demo/hello-view.fxml"
-        };
-
+        // Try to find the FXML file
         URL fxmlUrl = null;
-        for (String path : possiblePaths) {
-            fxmlUrl = HelloApplication.class.getResource(path);
-            if (fxmlUrl != null) {
-                System.out.println("Found FXML at: " + path);
-                break;
-            }
-        }
 
-        // If still null, try direct file access (for development only)
+        // Try relative path first
+        fxmlUrl = HelloApplication.class.getResource("hello-view.fxml");
+
+        // If not found, try direct file access as fallback
         if (fxmlUrl == null) {
             File file = new File("src/main/resources/com/example/demo/hello-view.fxml");
             if (file.exists()) {
                 fxmlUrl = file.toURI().toURL();
-                System.out.println("Found FXML via direct file access: " + fxmlUrl);
+                System.out.println("Found hello-view.fxml via direct file access: " + fxmlUrl);
             } else {
-                System.err.println("Error: Cannot find FXML file at: " + file.getAbsolutePath());
-
-                // Final fallback - try to create a basic scene without FXML
-                stage.setTitle("Tic Tac Toe");
-                stage.setScene(new Scene(new javafx.scene.layout.VBox(), 350, 350));
-                stage.show();
+                System.err.println("Error: Cannot find hello-view.fxml at: " + file.getAbsolutePath());
                 return;
             }
         }

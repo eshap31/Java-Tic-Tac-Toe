@@ -40,7 +40,12 @@ public class Manager {
         // If there's already a player waiting, match them
         if (!playersForSize.isEmpty()) {
             Player opponent = playersForSize.remove(0);
-            return createGame(opponent, player, boardSize);
+            Game newGame = createGame(opponent, player, boardSize);
+
+            // Notify observers about the new game - this is where UI creation will happen
+            notifyGameCreated(newGame);
+
+            return newGame;
         } else {
             // Otherwise, add this player to the waiting list
             playersForSize.add(player);
@@ -65,8 +70,9 @@ public class Manager {
         Game game = new Game(player1, player2, boardSize);
         activeGames.add(game);
 
-        // Notify observers about the new game
-        notifyGameCreated(game);
+        System.out.println("Created game between " + player1.getName() +
+                " (" + player1.getSymbol() + ") and " +
+                player2.getName() + " (" + player2.getSymbol() + ")");
 
         return game;
     }
@@ -90,6 +96,19 @@ public class Manager {
             copy.put(entry.getKey(), new ArrayList<>(entry.getValue()));
         }
         return copy;
+    }
+
+    /**
+     * Remove a waiting player (e.g., if they cancel matchmaking)
+     * @param player The player to remove
+     * @return true if player was removed, false if not found
+     */
+    public boolean removeWaitingPlayer(Player player) {
+        int boardSize = player.getBoardSize();
+        if (waitingPlayers.containsKey(boardSize)) {
+            return waitingPlayers.get(boardSize).remove(player);
+        }
+        return false;
     }
 
     /**
