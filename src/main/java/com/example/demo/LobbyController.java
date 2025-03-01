@@ -3,7 +3,8 @@ package com.example.demo;
 /**
  * Controller for the lobby/matchmaking functionality
  */
-public class LobbyController {
+public class LobbyController
+{
     private Manager manager;
 
     /**

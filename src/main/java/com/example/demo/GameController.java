@@ -11,8 +11,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class GameController implements Runnable {
     private Game game;
-    private GameView.PlayerGameView player1View;
-    private GameView.PlayerGameView player2View;
+    private PlayerGameView player1View;
+    private PlayerGameView player2View;
     private boolean running = true;
     private final ReentrantLock gameLock = new ReentrantLock();
     private Move lastMove = null;
@@ -29,7 +29,7 @@ public class GameController implements Runnable {
      * Set the view for player 1
      * @param player1View The view for player 1
      */
-    public void setPlayer1View(GameView.PlayerGameView player1View) {
+    public void setPlayer1View(PlayerGameView player1View) {
         this.player1View = player1View;
     }
 
@@ -37,7 +37,7 @@ public class GameController implements Runnable {
      * Set the view for player 2
      * @param player2View The view for player 2
      */
-    public void setPlayer2View(GameView.PlayerGameView player2View) {
+    public void setPlayer2View(PlayerGameView player2View) {
         this.player2View = player2View;
     }
 
@@ -184,7 +184,7 @@ public class GameController implements Runnable {
     /**
      * Update game status for a specific player view
      */
-    private void updateGameStatus(GameView.PlayerGameView playerView, Game.GameState gameState, Player winner) {
+    private void updateGameStatus(PlayerGameView playerView, Game.GameState gameState, Player winner) {
         switch (gameState) {
             case WAITING_TO_START:
                 playerView.showStatus("Game is about to start");

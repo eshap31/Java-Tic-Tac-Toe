@@ -13,10 +13,6 @@ import java.net.URL;
  * Main application class for the Tic Tac Toe game.
  * This class loads the initial FXML and starts the application.
  */
-/**
- * Main application class for the Tic Tac Toe game.
- * This class loads the initial FXML and starts the application.
- */
 public class HelloApplication extends Application {
     private Manager gameManager;
     private GameSetupController gameSetupController;
