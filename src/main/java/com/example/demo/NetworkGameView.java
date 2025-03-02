@@ -1,5 +1,6 @@
 package com.example.demo;
 
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -22,38 +23,37 @@ public class NetworkGameView {
     private GameClient client;
     private NetworkGameController controller;
     private boolean myTurn = false;
+    private boolean isGameBoardCreated = false;
 
     /**
      * Constructor for a networked game view
-     * @param title Title for the game window
      * @param boardSize Size of the game board
      * @param player The player this view is for
      * @param host The server host
      * @param port The server port
      */
-    public NetworkGameView(String title, int boardSize, Player player, String host, int port) {
+    public NetworkGameView(int boardSize, Player player, String host, int port) {
         this.boardSize = boardSize;
         this.player = player;
-        this.buttons = new Button[boardSize][boardSize];
 
         // Create the game client
         this.client = new GameClient(host, port, this);
 
         // Create the controller
         this.controller = new NetworkGameController(client, player);
-
-        // Create the UI
-        createUI(title);
     }
 
     /**
      * Create the game UI
-     * @param title Title for the game window
      */
-    private void createUI(String title) {
+    private void createGameBoard() {
+        if (isGameBoardCreated) {
+            return;
+        }
+
         // Create a new stage
         stage = new Stage();
-        stage.setTitle(title);
+        stage.setTitle(player.getName() + "'s Game");
 
         // Create the board grid
         boardGrid = new GridPane();
@@ -61,9 +61,10 @@ public class NetworkGameView {
         boardGrid.setVgap(10);
 
         // Create the status label
-        statusLabel = new Label("Connecting to server...");
+        statusLabel = new Label("Game starting...");
 
         // Create buttons for each cell
+        buttons = new Button[boardSize][boardSize];
         for (int row = 0; row < boardSize; row++) {
             for (int col = 0; col < boardSize; col++) {
                 Button button = new Button();
@@ -107,17 +108,20 @@ public class NetworkGameView {
         stage.setOnCloseRequest(event -> {
             controller.disconnect();
         });
+
+        isGameBoardCreated = true;
     }
 
     /**
      * Connect to the server and register the player
+     * @return true if connection successful, false otherwise
      */
-    public void connect() {
+    public boolean connect() {
         if (client.connect()) {
-            statusLabel.setText("Connected. Registering player...");
             client.registerPlayer(player.getName(), boardSize);
+            return true;
         } else {
-            statusLabel.setText("Failed to connect to server");
+            return false;
         }
     }
 
@@ -149,18 +153,13 @@ public class NetworkGameView {
     }
 
     /**
-     * Show the game window
-     */
-    public void show() {
-        stage.show();
-    }
-
-    /**
      * Close the game window
      */
     public void close() {
         controller.disconnect();
-        stage.close();
+        if (stage != null && stage.isShowing()) {
+            stage.close();
+        }
     }
 
     //-------------------------------------------------------------------------
@@ -172,7 +171,6 @@ public class NetworkGameView {
      * @param message Error message
      */
     public void handleConnectionFailed(String message) {
-        statusLabel.setText("Connection failed: " + message);
         showAlert("Connection Error", "Failed to connect to the server: " + message);
     }
 
@@ -181,7 +179,7 @@ public class NetworkGameView {
      * @param playerName Player name
      */
     public void handleRegistered(String playerName) {
-        statusLabel.setText("Registered as " + playerName);
+        // Nothing to do here - player stays on registration screen
     }
 
     /**
@@ -189,7 +187,7 @@ public class NetworkGameView {
      * @param message Waiting message
      */
     public void handleWaiting(String message) {
-        statusLabel.setText(message);
+        // Nothing to do here - player stays on registration screen
     }
 
     /**
@@ -199,8 +197,13 @@ public class NetworkGameView {
      * @param message Match message
      */
     public void handleMatched(int gameId, char symbol, String message) {
-        statusLabel.setText(message);
-        stage.setTitle(player.getName() + "'s Game (" + symbol + ")");
+        // Create and show the game board now that we have a match
+        Platform.runLater(() -> {
+            createGameBoard();
+            stage.setTitle(player.getName() + "'s Game (" + symbol + ")");
+            statusLabel.setText(message);
+            stage.show();
+        });
     }
 
     /**
@@ -266,8 +269,11 @@ public class NetworkGameView {
      */
     public void handleDisconnected() {
         myTurn = false;
-        setButtonsEnabled(false);
-        statusLabel.setText("Disconnected from server");
+
+        if (stage != null && stage.isShowing()) {
+            setButtonsEnabled(false);
+            statusLabel.setText("Disconnected from server");
+        }
     }
 
     /**
@@ -275,7 +281,9 @@ public class NetworkGameView {
      * @param message Error message
      */
     public void handleError(String message) {
-        statusLabel.setText("Error: " + message);
+        if (stage != null && stage.isShowing()) {
+            statusLabel.setText("Error: " + message);
+        }
     }
 
     /**
@@ -284,10 +292,12 @@ public class NetworkGameView {
      * @param message The alert message
      */
     private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle(title);
+            alert.setHeaderText(null);
+            alert.setContentText(message);
+            alert.showAndWait();
+        });
     }
 }

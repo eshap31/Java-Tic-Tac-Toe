@@ -5,6 +5,8 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
@@ -19,17 +21,22 @@ public class HelloController {
     @FXML
     private TextField nameEntry;
 
-    private Manager manager;
-    private LobbyController lobbyController;
+    @FXML
+    private Button btn3x3;
 
-    /**
-     * Set the game manager
-     * @param manager The game manager
-     */
-    public void setManager(Manager manager) {
-        this.manager = manager;
-        this.lobbyController = new LobbyController(manager);
-    }
+    @FXML
+    private Button btn4x4;
+
+    @FXML
+    private Button btn5x5;
+
+    @FXML
+    private Label statusLabel;
+
+    private static final String SERVER_HOST = "localhost";
+    private static final int SERVER_PORT = 8888;
+
+    private NetworkGameView networkGameView;
 
     /**
      * Handler for the client creation button
@@ -61,10 +68,6 @@ public class HelloController {
             FXMLLoader fxmlLoader = new FXMLLoader(fxmlUrl);
             Parent root = fxmlLoader.load();
 
-            // Get the controller and set the manager
-            HelloController controller = fxmlLoader.getController();
-            controller.setManager(this.manager);
-
             // Create and show a new stage
             Stage clientLoginStage = new Stage();
             clientLoginStage.setTitle("Player Registration");
@@ -92,24 +95,45 @@ public class HelloController {
         // Create a new player
         Player player = new Player(name, size);
 
-        // Add the player to the manager through the lobby controller
-        // Note: We're not creating game views here anymore - GameSetupController will handle that
-        Game game = lobbyController.registerPlayer(player);
+        // Create a network game view (but don't show it yet)
+        networkGameView = new NetworkGameView(size, player, SERVER_HOST, SERVER_PORT);
 
-        if (game != null) {
-            // A match was found - close the registration window
-            // GameSetupController will handle creating the game views
-            System.out.println("Player matched: " + name + " - closing registration window");
-            Stage stage = (Stage) nameEntry.getScene().getWindow();
-            stage.close();
-        } else {
-            // No match yet, show waiting message
-            Stage stage = (Stage) nameEntry.getScene().getWindow();
-            stage.setTitle("Waiting for opponent...");
-            System.out.println("Player waiting: " + name);
+        // Disable the size buttons
+        disableSizeButtons();
 
-            // The window will be closed by the GameSetupController when a match is found
+        // Update status to show we're waiting
+        if (statusLabel != null) {
+            statusLabel.setText("Connecting to server and waiting for opponent...");
         }
+
+        // Connect to the server
+        if (!networkGameView.connect()) {
+            // Connection failed
+            enableSizeButtons();
+            if (statusLabel != null) {
+                statusLabel.setText("Failed to connect to server. Please try again.");
+            }
+        }
+
+        // Note: We don't close the registration window - player stays here until matched
+    }
+
+    /**
+     * Disable the size selection buttons
+     */
+    private void disableSizeButtons() {
+        if (btn3x3 != null) btn3x3.setDisable(true);
+        if (btn4x4 != null) btn4x4.setDisable(true);
+        if (btn5x5 != null) btn5x5.setDisable(true);
+    }
+
+    /**
+     * Enable the size selection buttons
+     */
+    private void enableSizeButtons() {
+        if (btn3x3 != null) btn3x3.setDisable(false);
+        if (btn4x4 != null) btn4x4.setDisable(false);
+        if (btn5x5 != null) btn5x5.setDisable(false);
     }
 
     /**

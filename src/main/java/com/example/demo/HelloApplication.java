@@ -14,17 +14,9 @@ import java.net.URL;
  * This class loads the initial FXML and starts the application.
  */
 public class HelloApplication extends Application {
-    private Manager gameManager;
-    private GameSetupController gameSetupController;
 
     @Override
     public void start(Stage stage) throws IOException {
-        // Create the game manager that will be used throughout the application
-        gameManager = new Manager();
-
-        // Create the game setup controller that will create game UIs
-        gameSetupController = new GameSetupController(gameManager);
-
         // Try to find the FXML file
         URL fxmlUrl = null;
 
@@ -47,9 +39,8 @@ public class HelloApplication extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(fxmlUrl);
         Scene scene = new Scene(fxmlLoader.load(), 350, 350);
 
-        // Get the controller and pass the game manager to it
+        // Get the controller (no need to set Manager anymore)
         HelloController controller = fxmlLoader.getController();
-        controller.setManager(gameManager);
 
         // Set up and show the stage
         stage.setTitle("Tic Tac Toe");
