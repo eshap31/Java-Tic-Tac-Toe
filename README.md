@@ -19,7 +19,7 @@ This is a Tic Tac Toe game implemented using Java, JavaFX, and socket-based netw
 ### Running the Game
 1. Clone this repository:
    ```sh
-   git clone <https://github.com/eshap31/Java-Tic-Tac-Toe>
+   git clone <github.com/eshap31/Java-Tic-Tac-Toe>
    ```
 2. Open the project in your preferred IDE.
 3. Ensure JavaFX is configured in your IDE.
